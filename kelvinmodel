@@ -1,0 +1,235 @@
+ClearAll()
+class poi():#定义二维点类
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def addx(self, inx):#x坐标增加
+        self.x = self.x + inx
+        return self
+ 
+    def addy(self, inx):#y坐标增加
+        self.y = self.y + inx
+        return self
+ 
+    def adds(self, inx):#x，y坐标增加
+        self.x = self.x + inx.x
+        self.y = self.y + inx.y
+        return self
+     
+    def rettup(self):
+        return (self.x,self.y)
+ 
+    def __add__(self, other):# +号定义
+        x = self.x + other.x
+        y = self.y + other.y
+        return poi(x, y)
+ 
+    def __str__(self):
+        return 'x:%7d ,y:%7d' % (self.x, self.y)
+class poi3():#定义三维点类
+    def __init__(self, x, y,z):
+        self.x = x
+        self.y = y
+        self.z = z
+    def addx(self, inx):
+        self.x = self.x + inx
+        return self
+ 
+    def addy(self, inx):
+        self.y = self.y + inx
+        return self
+    
+    def addz(self, inx):
+        self.z = self.z + inx
+        return self
+ 
+    def adds(self, inx):
+        self.x = self.x + inx.x
+        self.y = self.y + inx.y
+        self.z = self.z + inx.z
+        return self
+    def addtup(self, inx):
+        self.x = self.x + inx[0]
+        self.y = self.y + inx[1]
+        self.z = self.z + inx[2]
+        return self
+    def __add__(self, other):
+        x = self.x + other.x
+        y = self.y + other.y
+        z = self.z+ other.z
+        return poi3(x, y, z)
+    def rettup(self):
+        return (self.x,self.y,self.z)
+ 
+    def __str__(self):
+        return 'x:%7d ,y:%7d, z%7d' % (self.x, self.y, self.z)
+    
+def poic(po): #转换点坐标
+    return Point.Create(NM(po.x), NM(po.y), NM(po.z))
+def plane(o, x, y):#创建平面
+    pl = Plane.Create(frame(o, x, y))
+    ViewHelper.SetSketchPlane(pl)
+def frame(o, x, y):
+    fs = Frame.Create(poic(o),direct(x),direct(y))
+    return fs
+def direct(po):#创建方向数据
+    return Direction.Create(po[0],po[1],po[2])
+
+def Ccy(c1, s1, e1):#生成圆柱体
+    cpt = poic(c1)
+    spt = poic(s1)
+    ept = poic(e1)
+    body = CylinderBody.Create(cpt, spt, ept)
+
+ClearAll()
+# 参数
+r = 1
+l = 9
+z = math.sin(math.pi/4)*r
+a1 = l*0.25
+a2 = l*0.5
+a3 = a1+a2
+o =poi3 (0, 0, 0)
+d1 = poi(0, 0)
+d2 = poi(l+r,l+r)
+d3 = poi(l+r,0)
+
+p11 = poi3(a1, a2, 0)
+p12 = poi3(a2, a1, 0)
+p13 = poi3(a2, a1, r)
+
+p21 = poi3(a2, 0, a1)
+p22 = poi3(a1, 0, a2)
+p23 = poi3(a1, 1, a2)
+
+p31 = poi3(a2, 0, a1)
+p32 = poi3(a3, 0, a2)
+p33 = poi3(a3, 1, a2)
+Ccy(p11, p12, p13)
+Ccy(p21, p22, p23)
+Ccy(p31, p32, p33)
+
+x1 =poi3 (a2, 0, 0)
+plane(x1,(0, 1, 0),(0, 0, 1))
+ox1 = poi(-2*r, -2*r)
+ox2 = poi(-2*r, a2)
+ox3 = poi(a2, a2)
+mf(ox1, ox2, ox3)
+
+ViewHelper.SetViewMode(InteractionMode.Solid)
+
+targets = BodySelection.Create(GetRootPart().Bodies[0],GetRootPart().Bodies[1],GetRootPart().Bodies[2])
+tools = BodySelection.Create(GetRootPart().Bodies[3])
+options = MakeSolidsOptions()
+options.KeepCutter = False
+result = Combine.Intersect(targets, tools, options)
+
+selection = BodySelection.Create(GetRootPart().Bodies[2],GetRootPart().Bodies[3],GetRootPart().Bodies[4])
+result = Combine.RemoveRegions(selection)
+
+x1 =poi3 (0,a2, 0)
+plane(x1,(1, 0, 0),(0, 0, 1))
+ox1 = poi(-2*r, -2*r)
+ox2 = poi(-2*r, a2)
+ox3 = poi(a2, a2)
+mf(ox1, ox2, ox3)
+
+ViewHelper.SetViewMode(InteractionMode.Solid)
+targets = BodySelection.Create(GetRootPart().Bodies[0])
+tools = BodySelection.Create(GetRootPart().Bodies[3])
+options = MakeSolidsOptions()
+options.KeepCutter = False
+result = Combine.Intersect(targets, tools, options)
+
+selection = BodySelection.Create(GetRootPart().Bodies[0])
+result = Combine.RemoveRegions(selection)
+p41 = poi3(a2, a1, 0)
+p42 = poi3(a2, 0, a1)
+p43 = poi3(a2+1.012*r, 0, a1)
+p51 = poi3(a1, 0, a2)
+p52 = poi3(0, a1, a2)
+p53 = poi3(0,a1, a2+1.012*r)
+Ccy(p41,p42,p43)
+Ccy(p51,p52,p53)
+plane(o,(1, 0, 0),(0, 0, 1))
+mf(d1, d2, d3)
+ViewHelper.SetViewMode(InteractionMode.Solid)
+targets = BodySelection.Create(GetRootPart().Bodies[0],GetRootPart().Bodies[1])
+tools = BodySelection.Create(GetRootPart().Bodies[3])
+options = MakeSolidsOptions()
+options.KeepCutter = False
+result = Combine.Intersect(targets, tools, options)
+
+selection = BodySelection.Create(GetRootPart().Bodies[3],GetRootPart().Bodies[4])
+result = Combine.RemoveRegions(selection)
+
+x2 = poi3(0,0,a2)
+plane(x2,(1, 0, 0),(0, 1, 0))
+oz1 = poi(-2*r, -2*r)
+oz2 = poi(-2*r, l)
+oz3 = poi(l, -2*r)
+mf(oz1, oz2, oz3)
+ViewHelper.SetViewMode(InteractionMode.Solid)
+targets = BodySelection.Create(GetRootPart().Bodies[0],GetRootPart().Bodies[1])
+tools = BodySelection.Create(GetRootPart().Bodies[3])
+options = MakeSolidsOptions()
+options.KeepCutter = False
+result = Combine.Intersect(targets, tools, options)
+
+selection = BodySelection.Create(GetRootPart().Bodies[3],GetRootPart().Bodies[4])
+result = Combine.RemoveRegions(selection)
+
+
+targets = BodySelection.Create(GetRootPart().Bodies[0],GetRootPart().Bodies[1],GetRootPart().Bodies[2])
+result = Combine.Merge(targets)
+
+plane(o,(1, 0, 0),(0, 1, 0))
+mf(d1, d2, d3)
+ViewHelper.SetViewMode(InteractionMode.Solid)
+
+targets = BodySelection.Create(GetRootPart().Bodies[0])
+tools = BodySelection.Create(GetRootPart().Bodies[1])
+options = MakeSolidsOptions()
+options.KeepCutter = False
+result = Combine.Intersect(targets, tools, options)
+selection = BodySelection.Create(GetRootPart().Bodies[0])
+result = Combine.RemoveRegions(selection)
+
+plane(o,(0, 1, 0),(0, 0, 1))
+mf(d1, d2, d3)
+ViewHelper.SetViewMode(InteractionMode.Solid)
+targets = BodySelection.Create(GetRootPart().Bodies[0])
+tools = BodySelection.Create(GetRootPart().Bodies[1])
+options = MakeSolidsOptions()
+options.KeepCutter = False
+result = Combine.Intersect(targets, tools, options)
+selection = BodySelection.Create(GetRootPart().Bodies[0])
+Combine.RemoveRegions(selection)
+
+Copy.Execute(BodySelection.Create([GetRootPart().Bodies[0]]))
+selection = BodySelection.Create([GetRootPart().Bodies[1]])
+anchorPoint = Point.Create(NM(a2), NM(a2), NM(0))
+axis = Line.Create(anchorPoint, Direction.DirZ)
+options = MoveOptions()
+result = Move.Rotate(selection, axis, DEG(90), options)
+
+targets = BodySelection.Create(GetRootPart().Bodies[0],GetRootPart().Bodies[1])
+result = Combine.Merge(targets)
+
+Copy.Execute(BodySelection.Create([GetRootPart().Bodies[0]]))
+selection = BodySelection.Create([GetRootPart().Bodies[1]])
+anchorPoint = Point.Create(NM(a2), NM(a2), NM(0))
+axis = Line.Create(anchorPoint, Direction.DirZ)
+options = MoveOptions()
+result = Move.Rotate(selection, axis, DEG(180), options)
+targets = BodySelection.Create(GetRootPart().Bodies[0],GetRootPart().Bodies[1])
+result = Combine.Merge(targets)
+ 
+Copy.Execute(BodySelection.Create([GetRootPart().Bodies[0]]))
+selection = BodySelection.Create([GetRootPart().Bodies[1]])
+anchorPoint = Point.Create(NM(a2), NM(a2), NM(a2))
+axis = Line.Create(anchorPoint, Direction.DirX)
+options = MoveOptions()
+result = Move.Rotate(selection, axis, DEG(180), options)
+targets = BodySelection.Create(GetRootPart().Bodies[0],GetRootPart().Bodies[1])
+result = Combine.Merge(targets)
